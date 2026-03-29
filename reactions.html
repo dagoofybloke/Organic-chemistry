@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Organic Chemistry Reactions</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --card: #1a1e2a;
+    --border: #2a2f3f;
+    --accent: #4f8ef7;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --accent4: #fb923c;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --tag-bg: #1e2535;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #0d0f14 0%, #1a1e2a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(79,142,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  header h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; letter-spacing: -0.02em; }
+  header h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  header p { color: var(--muted); margin-top: 0.5rem; font-size: 0.95rem; }
+
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    padding: 1.25rem 2rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap input {
+    width: 100%; padding: 0.55rem 0.85rem 0.55rem 2.4rem;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-size: 0.9rem; outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); opacity: 0.4; }
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .filter-btn {
+    padding: 0.4rem 0.85rem; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--card); color: var(--muted); font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.1); }
+  .count { color: var(--muted); font-size: 0.85rem; margin-left: auto; white-space: nowrap; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 560px), 1fr));
+    gap: 1.25rem;
+    padding: 1.5rem 2rem 3rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 24px rgba(79,142,247,0.1); }
+
+  .card-header {
+    padding: 1rem 1.1rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 0.75rem;
+  }
+  .card-num {
+    min-width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; color: white; flex-shrink: 0; margin-top:1px;
+  }
+  .card-title { font-size: 0.98rem; font-weight: 700; line-height: 1.3; }
+  .card-subtitle { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+
+  .card-body { padding: 0.85rem 1.1rem 1rem; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+
+  .rxn-arrow {
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    background: var(--tag-bg); border-radius: 8px; padding: 0.5rem 0.75rem;
+    font-size: 0.82rem;
+  }
+  .rxn-arrow .reactant { color: #93c5fd; font-style: italic; }
+  .rxn-arrow .arr { color: var(--accent4); font-weight: 700; font-size: 1rem; }
+  .rxn-arrow .product { color: #6ee7b7; font-style: italic; }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .info-item { background: var(--tag-bg); border-radius: 8px; padding: 0.45rem 0.65rem; }
+  .info-item .lbl { font-size: 0.67rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.2rem; }
+  .info-item .val { font-size: 0.82rem; font-weight: 500; }
+
+  .info-full { grid-column: 1 / -1; }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.15rem; }
+  .tag {
+    font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 600;
+  }
+  .tag-regios { background: rgba(167,139,250,0.15); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.3); }
+  .tag-stereos { background: rgba(52,211,153,0.12); color: #6ee7b7; border: 1px solid rgba(52,211,153,0.25); }
+  .tag-mech { background: rgba(79,142,247,0.12); color: #93c5fd; border: 1px solid rgba(79,142,247,0.25); }
+  .tag-note { background: rgba(251,146,60,0.12); color: #fdba74; border: 1px solid rgba(251,146,60,0.25); }
+
+  .note-box { background: rgba(251,146,60,0.07); border-left: 3px solid var(--accent4); border-radius: 0 6px 6px 0; padding: 0.45rem 0.7rem; font-size: 0.8rem; color: #fdba74; }
+
+  .section-divider {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0;
+  }
+  .section-divider span {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); white-space: nowrap;
+  }
+  .section-divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    .grid { padding: 1rem; gap: 1rem; }
+    .controls { padding: 1rem; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Organic Chemistry <span>Reactions Reference</span></h1>
+  <p>Quick-reference guide · Reagents · Mechanisms · Selectivity</p>
+</header>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search reactions, reagents, mechanisms…"/>
+  </div>
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="alkene">Alkene Additions</button>
+    <button class="filter-btn" data-cat="alkyne">Alkyne</button>
+    <button class="filter-btn" data-cat="oxidation">Oxidation</button>
+    <button class="filter-btn" data-cat="halide">Halides & SN</button>
+    <button class="filter-btn" data-cat="carbonyl">Carbonyl & Reduction</button>
+    <button class="filter-btn" data-cat="aromatic">Aromatic</button>
+    <button class="filter-btn" data-cat="amine">Amines & N</button>
+  </div>
+  <span class="count" id="countLabel"></span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const reactions = [
+  // ─── ALKENE ADDITIONS ───
+  {
+    num:1, cat:"alkene",
+    name:"Addition of HX to Alkene",
+    subtitle:"Electrophilic addition · Markovnikov",
+    reactant:"Alkene", product:"Alkyl halide",
+    reagent:"HX (HCl, HBr, HI)",
+    regio:"Markovnikov",
+    stereo:"Not stereoselective",
+    mech:"Electrophilic Addition (AEₑ)",
+    notes:"Proceeds via carbocation intermediate; carbocation rearrangements (hydride/methyl shifts) possible."
+  },
+  {
+    num:2, cat:"alkene",
+    name:"Addition of HBr (Peroxide Conditions)",
+    subtitle:"Free radical addition · Anti-Markovnikov",
+    reactant:"Alkene", product:"Alkyl bromide",
+    reagent:"HBr + ROOR (peroxide) or hν",
+    regio:"Anti-Markovnikov",
+    stereo:"Not stereoselective",
+    mech:"Free Radical Addition",
+    notes:"Only works for HBr (not HCl or HI). No carbocation rearrangements. Bromine adds to the less substituted carbon."
+  },
+  {
+    num:3, cat:"alkene",
+    name:"Hydroboration–Oxidation",
+    subtitle:"Anti-Markovnikov · Syn addition",
+    reactant:"Alkene", product:"Alcohol",
+    reagent:"① BH₃·THF  ② H₂O₂ / NaOH",
+    regio:"Anti-Markovnikov",
+    stereo:"Syn addition",
+    mech:"Concerted 4-membered transition state (BH₃ adds across double bond in one step)",
+    notes:"Overall: anti-Markovnikov, syn addition of H and OH. No rearrangements. Retention of configuration at carbon."
+  },
+  {
+    num:4, cat:"alkene",
+    name:"Oxymercuration–Demercuration",
+    subtitle:"Markovnikov · No rearrangement",
+    reactant:"Alkene", product:"Alcohol",
+    reagent:"① Hg(OAc)₂ / H₂O  ② NaBH₄",
+    regio:"Markovnikov",
+    stereo:"Not stereoselective",
+    mech:"Electrophilic Addition via non-classical mercurinium ion intermediate",
+    notes:"No carbocation rearrangements (bridged mercurinium ion prevents it). OH adds to the more substituted carbon."
+  },
+  {
+    num:5, cat:"alkene",
+    name:"Catalytic Hydrogenation of Alkene",
+    subtitle:"Syn addition · H₂ across double bond",
+    reactant:"Alkene", product:"Alkane",
+    reagent:"H₂ + Pt, Pd, or Ni catalyst",
+    regio:"N/A",
+    stereo:"Syn addition",
+    mech:"Heterogeneous Catalytic Hydrogenation (both H atoms delivered from same face of catalyst surface)",
+    notes:"Both hydrogens add from the same face of the double bond."
+  },
+  {
+    num:6, cat:"alkene",
+    name:"Addition of X₂ to Alkene",
+    subtitle:"Anti addition · Halonium ion intermediate",
+    reactant:"Alkene", product:"Vicinal dihalide",
+    reagent:"X₂ (Cl₂ or Br₂) in CCl₄",
+    regio:"N/A",
+    stereo:"Anti addition",
+    mech:"Electrophilic Addition via cyclic halonium (bromonium/chloronium) ion",
+    notes:"Br₂/CCl₄ test: red-brown colour decolorises → confirms unsaturation. Anti addition gives trans product."
+  },
+  {
+    num:7, cat:"alkene",
+    name:"Addition of X₂/H₂O (Halohydrin Formation)",
+    subtitle:"Anti addition · OH adds Markovnikov",
+    reactant:"Alkene", product:"Halohydrin",
+    reagent:"X₂ + H₂O",
+    regio:"OH adds to more substituted carbon (Markovnikov)",
+    stereo:"Anti addition",
+    mech:"Electrophilic Addition via cyclic halonium ion; H₂O acts as nucleophile",
+    notes:"Halogen adds to less substituted carbon, OH to more substituted carbon. Anti addition overall."
+  },
+  {
+    num:8, cat:"alkene",
+    name:"Syn-Dihydroxylation (Baeyer's Test)",
+    subtitle:"Syn addition · cis-diol",
+    reactant:"Alkene / Alkyne", product:"cis-Diol / α-diketone",
+    reagent:"Cold, dilute KMnO₄ / alkaline",
+    regio:"N/A",
+    stereo:"Syn addition (both OH from same face)",
+    mech:"Oxidation via cyclic manganate ester intermediate",
+    notes:"Purple KMnO₄ decolorises → positive Baeyer's test. Alkynes give α-diketones. Use cold/dilute to avoid overoxidation."
+  },
+  {
+    num:9, cat:"alkene",
+    name:"Anti-Dihydroxylation",
+    subtitle:"Epoxidation then SN2 ring opening",
+    reactant:"Alkene", product:"trans-Diol",
+    reagent:"① Peroxyacid (mCPBA, RCO₃H)  ② H₃O⁺ or NaOH/H₂O",
+    regio:"N/A",
+    stereo:"Anti addition overall",
+    mech:"Step 1 — Epoxidation (concerted). Step 2 — SN2 ring opening by H₂O (backside attack → inversion at each carbon)",
+    notes:"Two-step process: epoxide forms first, then acid or base-catalysed hydrolysis gives trans-diol."
+  },
+  {
+    num:10, cat:"alkene",
+    name:"Oxidative Ozonolysis",
+    subtitle:"Cleaves double bond → carbonyl compounds",
+    reactant:"Alkene", product:"Carboxylic acids (or ketones if R-substituted)",
+    reagent:"O₃, then H₂O₂ / H₂O  (or hot KMnO₄)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Cycloaddition of O₃ to form molozonide → rearranges to ozonide → oxidative workup",
+    notes:"Oxidative workup (H₂O₂) → carboxylic acids. Reductive workup (Zn/H₂O or Me₂S) → aldehydes/ketones. Hot KMnO₄ also cleaves double bonds."
+  },
+
+  // ─── ALKYNE ───
+  {
+    num:11, cat:"alkyne",
+    name:"Partial Hydrogenation of Alkyne → cis-Alkene",
+    subtitle:"Lindlar catalyst · cis selectivity",
+    reactant:"Alkyne", product:"cis-Alkene (Z)",
+    reagent:"H₂ + Lindlar catalyst (Pd/CaCO₃, poisoned with Pb(OAc)₂ or quinoline)",
+    regio:"N/A",
+    stereo:"Syn addition → cis (Z) alkene",
+    mech:"Heterogeneous Catalytic Hydrogenation (catalyst surface delivers both H from same side)",
+    notes:"Lindlar catalyst is deactivated (poisoned) Pd — stops at alkene, does not reduce further."
+  },
+  {
+    num:12, cat:"alkyne",
+    name:"Partial Reduction of Alkyne → trans-Alkene",
+    subtitle:"Birch / dissolving metal · trans selectivity",
+    reactant:"Alkyne", product:"trans-Alkene (E)",
+    reagent:"Na or Li in liquid NH₃ (dissolving metal conditions)",
+    regio:"N/A",
+    stereo:"Anti addition → trans (E) alkene",
+    mech:"Radical anion mechanism: electron from Na adds to alkyne → vinyl radical anion → protonation → vinyl radical → second electron → carbanion → protonation",
+    notes:"NOT a hydrogenation. Dissolving metal reduction. Two sequential single-electron transfers give trans selectivity."
+  },
+  {
+    num:13, cat:"alkyne",
+    name:"Formation of Alkynyl Carbanion (Terminal Alkyne Deprotonation)",
+    subtitle:"sp C–H is acidic (pKₐ ≈ 25)",
+    reactant:"Terminal alkyne R–C≡C–H", product:"Alkynyl anion R–C≡C⁻",
+    reagent:"NaNH₂ (sodium amide) in liquid NH₃",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Acid-base reaction; NaNH₂ is strong enough base to deprotonate terminal alkyne (NH₃ pKₐ ≈ 38 > alkyne pKₐ ≈ 25)",
+    notes:"Alkynyl anion is a useful nucleophile for SN2 alkylation. Only terminal alkynes react. Internal alkynes are not acidic enough."
+  },
+
+  // ─── HALIDES & SN ───
+  {
+    num:14, cat:"halide",
+    name:"Allylic Bromination",
+    subtitle:"NBS · Free radical mechanism",
+    reactant:"Allylic C–H", product:"Allylic bromide",
+    reagent:"N-Bromosuccinimide (NBS), hν or ROOR (initiator), CCl₄",
+    regio:"Allylic position",
+    stereo:"Racemisation (planar allylic radical)",
+    mech:"Free Radical Substitution: initiation → allylic radical intermediate (resonance-stabilised) → NBS provides low [Br₂] → propagation",
+    notes:"NBS maintains low concentration of Br₂, favouring allylic radical pathway over addition. Allylic radical is resonance-stabilised."
+  },
+  {
+    num:15, cat:"halide",
+    name:"Finkelstein Reaction",
+    subtitle:"Halide exchange · SN2",
+    reactant:"R–Cl (or R–Br)", product:"R–I",
+    reagent:"NaI in dry acetone",
+    regio:"N/A",
+    stereo:"Inversion of configuration (Walden inversion)",
+    mech:"SN2 (bimolecular nucleophilic substitution)",
+    notes:"Driven to completion by insolubility of NaCl/NaBr in acetone (Le Chatelier's principle). Works best with primary and methyl halides."
+  },
+  {
+    num:16, cat:"halide",
+    name:"Swarts Reaction",
+    subtitle:"Fluoride introduction · SN2",
+    reactant:"R–Cl (or R–Br)", product:"R–F",
+    reagent:"AgF (silver fluoride)",
+    regio:"N/A",
+    stereo:"Inversion of configuration",
+    mech:"SN2",
+    notes:"AgF is used because F⁻ alone is a poor SN2 nucleophile; Ag⁺ activates the C–X bond as a Lewis acid."
+  },
+  {
+    num:17, cat:"halide",
+    name:"Formation of Alkyl Halide from Alcohol — HX",
+    subtitle:"ROH → RX · Markovnikov-like",
+    reactant:"R–OH", product:"R–X",
+    reagent:"HX (HCl, HBr, HI) — reactivity: HI > HBr > HCl",
+    regio:"N/A",
+    stereo:"Racemisation (SN1 via carbocation, for 2° and 3°); Inversion (SN2, for 1°)",
+    mech:"SN1 (2°, 3°) or SN2 (1°) after protonation of OH to form good leaving group (H₂O)",
+    notes:"Order of reactivity: 3° > 2° > 1°. Rearrangements possible with SN1."
+  },
+  {
+    num:18, cat:"halide",
+    name:"Formation of Alkyl Halide from Alcohol — PBr₃ / Red P + Br₂",
+    subtitle:"ROH → RBr · Inversion",
+    reactant:"R–OH", product:"R–Br",
+    reagent:"PBr₃ or Red P + Br₂",
+    regio:"N/A",
+    stereo:"Inversion of configuration",
+    mech:"SN2 — phosphorus activates OH as leaving group, then backside attack by Br⁻",
+    notes:"Clean inversion. No rearrangements. Preferred over HBr for 1° and 2° alcohols."
+  },
+  {
+    num:19, cat:"halide",
+    name:"Formation of Alkyl Chloride from Alcohol — PCl₅",
+    subtitle:"ROH → RCl · Inversion",
+    reactant:"R–OH", product:"R–Cl",
+    reagent:"PCl₅",
+    regio:"N/A",
+    stereo:"Inversion of configuration",
+    mech:"SN2",
+    notes:"Converts –OH to good leaving group (–OPCl₄), then Cl⁻ does backside attack."
+  },
+  {
+    num:20, cat:"halide",
+    name:"Formation of Alkyl Chloride from Alcohol — SOCl₂ (Darzens Conditions)",
+    subtitle:"ROH → RCl · Retention (SNi)",
+    reactant:"R–OH", product:"R–Cl",
+    reagent:"SOCl₂ (thionyl chloride), no added base (Darzens conditions)",
+    regio:"N/A",
+    stereo:"Retention of configuration (SNi — internal nucleophilic substitution)",
+    mech:"SNi: chlorosulfite ester forms in situ; Cl⁻ attacks from the same face as the leaving group departs",
+    notes:"Retention is unique to SOCl₂ without base. Adding pyridine changes to SN2 → inversion."
+  },
+  {
+    num:21, cat:"halide",
+    name:"Formation of Alkyl Chloride from Alcohol — SOCl₂ + Pyridine",
+    subtitle:"ROH → RCl · Inversion",
+    reactant:"R–OH", product:"R–Cl",
+    reagent:"SOCl₂ + pyridine",
+    regio:"N/A",
+    stereo:"Inversion of configuration",
+    mech:"SN2 — pyridine scavenges HCl, external Cl⁻ attacks from backside",
+    notes:"Adding pyridine overrides SNi pathway → inversion instead of retention."
+  },
+  {
+    num:22, cat:"halide",
+    name:"Lucas Test",
+    subtitle:"Distinguishing 1°, 2°, 3° alcohols",
+    reactant:"R–OH", product:"R–Cl (turbidity)",
+    reagent:"Conc. HCl + anhydrous ZnCl₂ (Lucas reagent)",
+    regio:"N/A",
+    stereo:"SN2 (1°) / SN1 (2° and 3°)",
+    mech:"3° and allylic/benzylic: immediate SN1. 2°: SN1 within ~5 min. 1°: SN2, slow/no turbidity at room temperature.",
+    notes:"Turbidity (cloudiness) = insoluble alkyl chloride has formed. 3° = immediate; 2° = within 5 min; 1° = no reaction (or very slow)."
+  },
+  {
+    num:23, cat:"halide",
+    name:"Williamson Ether Synthesis",
+    subtitle:"SN2 · Forms unsymmetrical ethers",
+    reactant:"R–O⁻ (alkoxide) + R′–X", product:"R–O–R′ (ether) + X⁻",
+    reagent:"Strong base (NaH or Na metal) to form alkoxide, then R′X",
+    regio:"N/A",
+    stereo:"Inversion at R′ carbon",
+    mech:"SN2 — alkoxide is nucleophile, alkyl halide is electrophile",
+    notes:"Use 1° alkyl halide to minimise E2 elimination competition. Best with methyl or primary halides."
+  },
+  {
+    num:24, cat:"halide",
+    name:"Cleavage of Ethers with HI",
+    subtitle:"Ether → alcohol + alkyl iodide",
+    reactant:"R–O–R′ + HI", product:"R–OH + R′–I",
+    reagent:"Conc. HI (HBr also works, but HI is most reactive)",
+    regio:"N/A",
+    stereo:"Inversion (SN2) for 1° and 2°; Racemisation (SN1) for 3°",
+    mech:"Protonation of ether oxygen, then SN1 or SN2 depending on substitution",
+    notes:"I⁻ is the best nucleophile among halides for ether cleavage. For unsymmetrical ethers, I⁻ attacks the less sterically hindered carbon in SN2, or the more stable carbocation forms in SN1."
+  },
+
+  // ─── AROMATIC ───
+  {
+    num:25, cat:"aromatic",
+    name:"Benzene Diazonium Salt — Sandmeyer Reaction (→ Cl)",
+    subtitle:"ArN₂⁺ → ArCl",
+    reactant:"Arenediazonium salt (ArN₂⁺ BF₄⁻)", product:"Aryl chloride (Ar–Cl)",
+    reagent:"CuCl / HCl (Sandmeyer conditions)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Radical/copper-mediated mechanism (SET from Cu⁺)",
+    notes:"Sandmeyer: uses Cu(I) salts. Gattermann variant (Cu metal/HX) is older. Both replace N₂ with halide."
+  },
+  {
+    num:26, cat:"aromatic",
+    name:"Benzene Diazonium Salt — Sandmeyer Reaction (→ Br)",
+    subtitle:"ArN₂⁺ → ArBr",
+    reactant:"Arenediazonium salt", product:"Aryl bromide (Ar–Br)",
+    reagent:"CuBr / HBr (Sandmeyer conditions)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Radical/copper-mediated (SET)",
+    notes:"Same mechanism as Cl variant. Cu(I) is necessary catalyst."
+  },
+  {
+    num:27, cat:"aromatic",
+    name:"Benzene Diazonium Salt → Aryl Iodide",
+    subtitle:"ArN₂⁺ → Ar–I",
+    reactant:"Arenediazonium salt", product:"Aryl iodide (Ar–I)",
+    reagent:"KI (no copper needed)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"I⁻ directly reduces ArN₂⁺; I⁻ is a good enough reductant to react without Cu catalyst",
+    notes:"Unlike Cl and Br, no copper catalyst required for iodide. Simply add KI to cold diazonium salt."
+  },
+  {
+    num:28, cat:"aromatic",
+    name:"Benzene Diazonium Salt → Aryl Fluoride (Balz–Schiemann)",
+    subtitle:"ArN₂⁺ → Ar–F",
+    reactant:"Arenediazonium salt", product:"Aryl fluoride (Ar–F)",
+    reagent:"HBF₄ (fluoroboric acid) → dry thermal decomposition",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"ArN₂⁺ BF₄⁻ salt formed, then thermally decomposed to ArF + N₂ + BF₃",
+    notes:"Balz–Schiemann reaction. F cannot be introduced by direct electrophilic substitution or Sandmeyer — this route is necessary."
+  },
+  {
+    num:29, cat:"aromatic",
+    name:"Benzene Diazonium Salt → Benzene (Reduction with H₃PO₂)",
+    subtitle:"ArN₂⁺ → Ar–H",
+    reactant:"Arenediazonium salt", product:"Arene (Ar–H)",
+    reagent:"H₃PO₂ (hypophosphorous acid)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Radical reduction: H₃PO₂ donates H radical, replaces N₂",
+    notes:"Useful for removing an amino group introduced for directing purposes. H₃PO₂ is the preferred reagent; EtOH is an older, less selective alternative."
+  },
+  {
+    num:30, cat:"aromatic",
+    name:"Benzene Diazonium Salt → Phenol",
+    subtitle:"ArN₂⁺ → Ar–OH",
+    reactant:"Arenediazonium salt", product:"Phenol (Ar–OH)",
+    reagent:"H₂O (warm/acidic aqueous conditions)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Hydrolysis of diazonium ion with loss of N₂",
+    notes:"Heat diazonium salt in water. Provides a route to phenols that can't always be obtained by direct EAS."
+  },
+  {
+    num:31, cat:"aromatic",
+    name:"Nucleophilic Aromatic Substitution (SNAr)",
+    subtitle:"Addition–Elimination on activated arenes",
+    reactant:"Ar–X (X = Cl, F with EWG at ortho/para)", product:"Ar–Nu",
+    reagent:"Strong nucleophile + electron-withdrawing groups (NO₂, CN, etc.) at ortho/para",
+    regio:"Requires EWG ortho/para to leaving group",
+    stereo:"N/A",
+    mech:"SNAr (addition–elimination): nucleophile adds to ring → Meisenheimer complex (anionic σ-complex) → leaving group departs",
+    notes:"F is the best leaving group in SNAr (counter-intuitive) because C–F bond is shorter, making the ring more electrophilic. Requires EWG to stabilise Meisenheimer complex."
+  },
+  {
+    num:32, cat:"aromatic",
+    name:"Reimer–Tiemann Reaction",
+    subtitle:"Phenol → ortho-Hydroxybenzaldehyde (Salicylaldehyde)",
+    reactant:"Phenol", product:"Salicylaldehyde (ortho-hydroxybenzaldehyde)",
+    reagent:"CHCl₃ / KOH (conc.)",
+    regio:"ortho to OH (predominantly)",
+    stereo:"N/A",
+    mech:"CHCl₃ + KOH → dichlorocarbene (:CCl₂); electrophilic addition of carbene to activated ring → hydrolysis of intermediate",
+    notes:"Electrophilic aromatic substitution via dichlorocarbene intermediate. Strongly basic conditions. ortho selectivity due to phenoxide directing."
+  },
+  {
+    num:33, cat:"aromatic",
+    name:"Étard Reaction",
+    subtitle:"Toluene → Benzaldehyde (side-chain oxidation)",
+    reactant:"Toluene (Ar–CH₃)", product:"Benzaldehyde (Ar–CHO)",
+    reagent:"CrO₂Cl₂ in CCl₄",
+    regio:"Benzylic methyl only",
+    stereo:"N/A",
+    mech:"Chromyl chloride oxidation of benzylic C–H; forms chromate ester intermediate hydrolysed to aldehyde",
+    notes:"Selective for benzylic methyl groups. Does not affect the aromatic ring. CrO₂Cl₂ is chromyl chloride."
+  },
+  {
+    num:34, cat:"aromatic",
+    name:"Gattermann–Koch Reaction",
+    subtitle:"Benzene → Benzaldehyde (formylation)",
+    reactant:"Benzene", product:"Benzaldehyde",
+    reagent:"CO + HCl, AlCl₃ (+ CuCl as co-catalyst)",
+    regio:"ortho/para directing (EAS)",
+    stereo:"N/A",
+    mech:"Electrophilic Aromatic Substitution — CO + HCl + AlCl₃ generates [CHO]⁺ (formyl cation / acylium)",
+    notes:"Effectively a Friedel–Crafts acylation with CO. Does not work with phenols and N,N-dialkylanilines. Requires high pressure CO."
+  },
+  {
+    num:35, cat:"aromatic",
+    name:"Gattermann Reaction",
+    subtitle:"Benzene → Benzaldehyde (HCN variant)",
+    reactant:"Benzene (or activated arene)", product:"Aryl aldehyde",
+    reagent:"HCN + HCl, AlCl₃ (or ZnCl₂)",
+    regio:"ortho/para directing (EAS)",
+    stereo:"N/A",
+    mech:"EAS — HCN + Lewis acid generates formiminium ion (electrophile), attacked by arene → imine intermediate → hydrolysis to aldehyde",
+    notes:"Works with phenols and N,N-dialkylanilines (unlike Gattermann–Koch). Safer to use than CO-based methods in lab settings."
+  },
+
+  // ─── CARBONYL & REDUCTION ───
+  {
+    num:36, cat:"carbonyl",
+    name:"Stephen's Reduction",
+    subtitle:"Nitrile → Aldehyde",
+    reactant:"R–CN (nitrile)", product:"R–CHO (aldehyde)",
+    reagent:"SnCl₂ / HCl in dry ether, then H₂O workup",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Partial reduction: SnCl₂ reduces nitrile to an imine tin complex (aldimine), which hydrolyses to aldehyde on workup",
+    notes:"Selective partial reduction — stops at aldehyde. Useful for aromatic and aliphatic nitriles."
+  },
+  {
+    num:37, cat:"carbonyl",
+    name:"Rosenmund Reduction",
+    subtitle:"Acid chloride → Aldehyde",
+    reactant:"R–COCl (acyl chloride)", product:"R–CHO (aldehyde)",
+    reagent:"H₂ + Pd/BaSO₄ catalyst (poisoned with quinoline–S)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Catalytic hydrogenation — Pd catalyst is poisoned to prevent over-reduction to primary alcohol",
+    notes:"Catalyst is deactivated (poisoned) to stop at the aldehyde stage. BaSO₄ support and quinoline–S are both important for selectivity."
+  },
+  {
+    num:38, cat:"carbonyl",
+    name:"DIBAL-H Reduction",
+    subtitle:"Selective reduction to aldehyde",
+    reactant:"Ester (R–CO₂R′), Acyl chloride (R–COCl), or Nitrile (R–CN)",
+    product:"Aldehyde (R–CHO)",
+    reagent:"DIBAL-H (diisobutylaluminium hydride), −78 °C, then H₂O workup",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Hydride delivery to carbonyl/nitrile carbon → aluminium tetrahedral intermediate → hydrolysis gives aldehyde",
+    notes:"Temperature critical: −78 °C ensures selectivity. At room temperature, esters are reduced further to primary alcohols. Nitriles → imine intermediate → aldehyde on workup."
+  },
+  {
+    num:39, cat:"carbonyl",
+    name:"Clemmensen Reduction",
+    subtitle:"Ketone/Aldehyde → Alkane (acid conditions)",
+    reactant:"Ketone or aldehyde (C=O)", product:"Alkane (CH₂)",
+    reagent:"Zn(Hg) amalgam + conc. HCl",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Heterogeneous reduction on zinc surface; mechanism not fully established (carbenoid intermediate proposed)",
+    notes:"Use for acid-stable substrates. Completely removes the carbonyl oxygen. Do NOT use for acid-sensitive compounds → use Wolff–Kishner instead."
+  },
+  {
+    num:40, cat:"carbonyl",
+    name:"Wolff–Kishner Reduction",
+    subtitle:"Ketone/Aldehyde → Alkane (basic conditions)",
+    reactant:"Ketone or aldehyde (C=O)", product:"Alkane (CH₂)",
+    reagent:"N₂H₄ (hydrazine) + KOH, high-boiling solvent (ethylene glycol), heat",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Hydrazone formation → base-mediated decomposition with loss of N₂ → alkane",
+    notes:"Use for base-stable, acid-sensitive substrates. Complementary to Clemmensen. Both methods achieve: C=O → CH₂."
+  },
+  {
+    num:41, cat:"carbonyl",
+    name:"HVZ Reaction (Hell–Volhard–Zelinsky)",
+    subtitle:"α-Bromination of carboxylic acids",
+    reactant:"Carboxylic acid (R–CH₂–COOH)", product:"α-Bromo carboxylic acid (R–CHBr–COOH)",
+    reagent:"Br₂ + P (red phosphorus or PCl₃) catalytic",
+    regio:"α-carbon (carbon adjacent to C=O)",
+    stereo:"Racemisation at α-carbon",
+    mech:"P converts acid to acyl bromide → enolises → bromination at α-carbon → hydrolysis back to acid",
+    notes:"Requires phosphorus (P acts as catalyst to form acyl bromide in situ). Cannot directly brominate carboxylic acids at α-position without P."
+  },
+  {
+    num:42, cat:"carbonyl",
+    name:"MnO₂ Oxidation",
+    subtitle:"Selective allylic/benzylic oxidation",
+    reactant:"Allylic or benzylic alcohol", product:"Allylic or benzylic aldehyde/ketone",
+    reagent:"MnO₂ (activated manganese dioxide)",
+    regio:"Allylic or benzylic position only",
+    stereo:"N/A",
+    mech:"Oxidation via surface-mediated hydrogen abstraction",
+    notes:"Highly selective — only oxidises allylic and benzylic alcohols. Does not affect saturated alcohols or other functional groups."
+  },
+  {
+    num:43, cat:"carbonyl",
+    name:"Cleavage of α-Diols/α-Diketones (Periodate Cleavage)",
+    subtitle:"Vicinal diol → two carbonyl fragments",
+    reactant:"1,2-Diol (vicinal diol) or α-diketone", product:"Two carbonyl compounds (aldehydes and/or ketones)",
+    reagent:"HIO₄ (periodic acid) or NaIO₄",
+    regio:"Bond between adjacent diol/ketone carbons",
+    stereo:"N/A",
+    mech:"Cyclic periodate ester intermediate → oxidative fragmentation of C–C bond",
+    notes:"Cleaves the C–C bond between two adjacent OH (or C=O) groups in one step. Useful for degradation and structure determination of carbohydrates."
+  },
+  {
+    num:44, cat:"carbonyl",
+    name:"Reduction with HI / Red P (Comprehensive Reduction)",
+    subtitle:"Any functional group → fully reduced",
+    reactant:"Various (alcohols, ketones, alkyl halides, etc.)", product:"Alkane",
+    reagent:"HI + Red Phosphorus, heat",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Sequential reduction via alkyl iodide intermediates; I⁻ is a strong reductant under these conditions",
+    notes:"Very forcing conditions. Used when complete deoxygenation/reduction is needed. Less selective than modern reagents."
+  },
+
+  // ─── AMINES & N ───
+  {
+    num:45, cat:"amine",
+    name:"Hofmann Bromamide Rearrangement (Hofmann Degradation)",
+    subtitle:"Amide → Primary amine (loses one carbon)",
+    reactant:"Primary amide (R–CONH₂)", product:"Primary amine (R–NH₂) — one carbon shorter",
+    reagent:"Br₂ + NaOH (aqueous)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"N-bromination → base deprotonates N → nitrene/isocyanate intermediate → nucleophilic addition of OH⁻ → carbamic acid → decarboxylation",
+    notes:"Carbon count decreases by one (RCONH₂ → RNH₂). Rearrangement of alkyl/aryl group from C to N occurs. Useful for obtaining primary amines from amides."
+  },
+  {
+    num:46, cat:"amine",
+    name:"Gabriel Phthalimide Synthesis",
+    subtitle:"Synthesises pure primary amines",
+    reactant:"Phthalimide + R–X (primary alkyl halide)", product:"Primary amine R–NH₂",
+    reagent:"① KOH (deprotonate phthalimide)  ② R–X (SN2 alkylation)  ③ N₂H₄ or H₂O / H⁺ (hydrolysis)",
+    regio:"N/A",
+    stereo:"Inversion at R carbon (SN2 step)",
+    mech:"Phthalimide anion (N-nucleophile) undergoes SN2 with primary alkyl halide; hydrolysis releases primary amine",
+    notes:"Only gives primary amines (no over-alkylation possible because N has only one H). Cannot use with secondary or tertiary halides (E2 competes). Hydrazine cleavage is milder than acidic hydrolysis."
+  },
+  {
+    num:47, cat:"amine",
+    name:"Carbylamine Reaction (Isocyanide Test)",
+    subtitle:"Test for primary amines",
+    reactant:"Primary amine R–NH₂ + CHCl₃", product:"Isocyanide R–NC (foul-smelling)",
+    reagent:"CHCl₃ + KOH (alc.)",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"CHCl₃ + KOH → dichlorocarbene (:CCl₂) → reacts with R–NH₂ → successive dehydrohalogenations → isocyanide",
+    notes:"Positive test: intensely foul smell of isocyanide. Specific to primary amines (1°) only — 2° and 3° amines do not give this reaction. Both aliphatic and aromatic primary amines react."
+  },
+];
+
+function buildCard(r, i) {
+  const catColors = {alkene:"#4f8ef7",alkyne:"#a78bfa",halide:"#f472b6",aromatic:"#fb923c",carbonyl:"#34d399",amine:"#facc15",oxidation:"#f87171"};
+  const col = catColors[r.cat] || "#8892a4";
+  return `<div class="card" data-cat="${r.cat}" data-search="${[r.name,r.reactant,r.product,r.reagent,r.mech,r.notes||''].join(' ').toLowerCase()}">
+    <div class="card-header">
+      <div class="card-num" style="background:linear-gradient(135deg,${col},${col}99)">${r.num}</div>
+      <div>
+        <div class="card-title">${r.name}</div>
+        ${r.subtitle ? `<div class="card-subtitle">${r.subtitle}</div>` : ''}
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="rxn-arrow">
+        <span class="reactant">${r.reactant}</span>
+        <span class="arr">→</span>
+        <span class="product">${r.product}</span>
+      </div>
+      <div class="info-grid">
+        <div class="info-item info-full">
+          <div class="lbl">Reagent / Conditions</div>
+          <div class="val">${r.reagent}</div>
+        </div>
+        <div class="info-item">
+          <div class="lbl">Regioselectivity</div>
+          <div class="val">${r.regio}</div>
+        </div>
+        <div class="info-item">
+          <div class="lbl">Stereoselectivity</div>
+          <div class="val">${r.stereo}</div>
+        </div>
+        <div class="info-item info-full">
+          <div class="lbl">Mechanism</div>
+          <div class="val">${r.mech}</div>
+        </div>
+      </div>
+      ${r.notes ? `<div class="note-box">💡 ${r.notes}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+const grid = document.getElementById('grid');
+const sections = [
+  {key:"alkene", label:"Alkene Additions"},
+  {key:"alkyne", label:"Alkyne Reactions"},
+  {key:"halide", label:"Halides & Nucleophilic Substitution"},
+  {key:"aromatic", label:"Aromatic Reactions"},
+  {key:"carbonyl", label:"Carbonyl & Reduction"},
+  {key:"amine", label:"Amines & Nitrogen"},
+];
+
+function render(cat='all', query='') {
+  grid.innerHTML='';
+  let count = 0;
+  sections.forEach(s => {
+    const filtered = reactions.filter(r => {
+      const catOk = cat==='all' || r.cat===cat;
+      const qOk = !query || r['data-search'] ? true : [r.name,r.reactant,r.product,r.reagent,r.mech,r.notes||''].join(' ').toLowerCase().includes(query);
+      return catOk && qOk;
+    });
+    if (cat !== 'all' && filtered.length === 0) return;
+    if (cat === 'all') {
+      const sec = document.createElement('div');
+      sec.className = 'section-divider';
+      sec.innerHTML = `<span>${s.label}</span><hr>`;
+      grid.appendChild(sec);
+    }
+    filtered.filter(r => r.cat === s.key).forEach(r => {
+      const el = document.createElement('div');
+      el.innerHTML = buildCard(r);
+      const card = el.firstChild;
+      // apply search filter
+      if (query) {
+        const haystack = [r.name,r.reactant,r.product,r.reagent,r.mech,r.notes||''].join(' ').toLowerCase();
+        if (!haystack.includes(query)) { card.classList.add('hidden'); }
+      }
+      grid.appendChild(card);
+      if (!card.classList.contains('hidden')) count++;
+    });
+  });
+  document.getElementById('countLabel').textContent = `${count} reaction${count!==1?'s':''}`;
+}
+
+render();
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  const activeCat = document.querySelector('.filter-btn.active')?.dataset.cat || 'all';
+  applyFilters(activeCat, q);
+});
+
+document.getElementById('filters').addEventListener('click', e => {
+  if (!e.target.matches('.filter-btn')) return;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  applyFilters(e.target.dataset.cat, q);
+});
+
+function applyFilters(cat, query) {
+  let count = 0;
+  document.querySelectorAll('.card').forEach(card => {
+    const catOk = cat==='all' || card.dataset.cat===cat;
+    const haystack = card.dataset.search || '';
+    const qOk = !query || haystack.includes(query);
+    if (catOk && qOk) { card.classList.remove('hidden'); count++; }
+    else card.classList.add('hidden');
+  });
+  document.querySelectorAll('.section-divider').forEach(d => {
+    if (cat !== 'all') d.classList.add('hidden');
+    else d.classList.remove('hidden');
+  });
+  document.getElementById('countLabel').textContent = `${count} reaction${count!==1?'s':''}`;
+}
+</script>
+</body>
+</html>
