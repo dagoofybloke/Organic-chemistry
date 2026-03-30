@@ -298,14 +298,36 @@ const reactions = [
   },
   {
     num:12, cat:"alkyne",
-    name:"Partial Reduction of Alkyne → trans-Alkene",
-    subtitle:"Birch / dissolving metal · trans selectivity",
-    reactant:"Alkyne", product:"trans-Alkene (E)",
-    reagent:"Na or Li in liquid NH₃ (dissolving metal conditions)",
+    name:"Birch Reduction — Alkyne → trans-Alkene",
+    subtitle:"Dissolving metal · trans selectivity",
+    reactant:"Internal alkyne R–C≡C–R′", product:"trans-Alkene (E)",
+    reagent:"Na or Li in liquid NH₃, t-BuOH or EtOH as proton source",
     regio:"N/A",
     stereo:"Anti addition → trans (E) alkene",
-    mech:"Radical anion mechanism: electron from Na adds to alkyne → vinyl radical anion → protonation → vinyl radical → second electron → carbanion → protonation",
-    notes:"NOT a hydrogenation. Dissolving metal reduction. Two sequential single-electron transfers give trans selectivity."
+    mech:"Radical anion mechanism: e⁻ from Na adds to alkyne → vinyl radical anion → protonation by alcohol → vinyl radical → second e⁻ → vinyl carbanion → protonation → trans alkene",
+    notes:"NOT a hydrogenation. Two sequential single-electron transfers (SET). The bulky trans geometry is favoured because the vinyl radical/carbanion intermediate adopts the less hindered trans conformation before second protonation."
+  },
+  {
+    num:"12b", cat:"alkyne",
+    name:"Birch Reduction — Benzene → 1,4-Cyclohexadiene",
+    subtitle:"Aromatic ring partial reduction",
+    reactant:"Benzene", product:"1,4-Cyclohexadiene",
+    reagent:"Na or Li in liquid NH₃, EtOH or t-BuOH as proton source",
+    regio:"1,4-positions reduced (unconjugated diene product)",
+    stereo:"N/A",
+    mech:"e⁻ from Na adds to ring → radical anion → protonation by alcohol → cyclohexadienyl radical → second e⁻ → carbanion → protonation → 1,4-cyclohexadiene",
+    notes:"Always gives the unconjugated 1,4-diene (not 1,3). Two electrons and two protons added overall. Alcohol (EtOH/t-BuOH) is essential as proton source — liquid NH₃ alone is not acidic enough."
+  },
+  {
+    num:"12c", cat:"alkyne",
+    name:"Birch Reduction — Substituted Benzenes (EDG vs EWG)",
+    subtitle:"Regioselectivity depends on substituent type",
+    reactant:"Substituted benzene (Ar–R)", product:"Substituted 1,4-cyclohexadiene",
+    reagent:"Na or Li in liquid NH₃, EtOH or t-BuOH",
+    regio:"EDG (–OR, –NR₂, –alkyl): double bonds remain on substituted carbons (substituent stays on sp² carbon). EWG (–COOH, –COR, –COOR): double bonds avoid substituted carbon (substituent ends up on sp³ carbon)",
+    stereo:"N/A",
+    mech:"Electron density distribution determines where first e⁻ adds: EWG pulls e⁻ density → ring carbons bearing EWG are reduced. EDG pushes e⁻ → unsubstituted positions are reduced first.",
+    notes:"Memory trick — EDG: substituent stays ON the double bond. EWG: substituent ends up OFF the double bond (on saturated carbon). Example: anisole (–OMe, EDG) → double bonds at C1 and C4 (OMe-bearing carbon stays sp²). Benzoic acid (–COOH, EWG) → COOH carbon becomes sp³."
   },
   
 {
