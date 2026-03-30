@@ -307,9 +307,10 @@ const reactions = [
     mech:"Radical anion mechanism: electron from Na adds to alkyne → vinyl radical anion → protonation → vinyl radical → second electron → carbanion → protonation",
     notes:"NOT a hydrogenation. Dissolving metal reduction. Two sequential single-electron transfers give trans selectivity."
   },
-  {
+  
+{
     num:13, cat:"alkyne",
-    name:"Formation of Alkynyl Carbanion (Terminal Alkyne Deprotonation)",
+    name:"NaNH₂ — Terminal Alkyne Deprotonation",
     subtitle:"sp C–H is acidic (pKₐ ≈ 25)",
     reactant:"Terminal alkyne R–C≡C–H", product:"Alkynyl anion R–C≡C⁻",
     reagent:"NaNH₂ (sodium amide) in liquid NH₃",
@@ -318,7 +319,29 @@ const reactions = [
     mech:"Acid-base reaction; NaNH₂ is strong enough base to deprotonate terminal alkyne (NH₃ pKₐ ≈ 38 > alkyne pKₐ ≈ 25)",
     notes:"Alkynyl anion is a useful nucleophile for SN2 alkylation. Only terminal alkynes react. Internal alkynes are not acidic enough."
   },
-
+  {
+    num:"13b", cat:"alkyne",
+    name:"NaNH₂ — Double Elimination to form Alkyne",
+    subtitle:"gem- or vic-dihalide → alkyne (2 × E2)",
+    reactant:"gem-Dihalide (R–CX₂–R′) or vic-Dihalide (R–CHX–CHX–R′)", product:"Internal or terminal alkyne",
+    reagent:"NaNH₂ (excess, ≥ 2 equiv.) in liquid NH₃, or NaNH₂ / heat",
+    regio:"N/A",
+    stereo:"N/A",
+    mech:"Two sequential E2 eliminations: first gives vinyl halide (haloalkene), second gives alkyne. NaNH₂ is a strong enough base for both steps.",
+    notes:"Example: CH₃–CCl₂–CH₃ → CH₃–C≡CH (propyne) with excess NaNH₂. Also works on vic-dihalides from halogenation of alkenes. Requires excess NaNH₂ (2 equivalents minimum)."
+  },
+  {
+    num:"13c", cat:"alkyne",
+    name:"NaNH₂ — Alkyne Isomerisation (Position Shift)",
+    subtitle:"Internal alkyne → terminal alkyne",
+    reactant:"Internal alkyne (R–C≡C–R′ where one R = alkyl chain with terminal H)", product:"Terminal alkyne (R–C≡C–H)",
+    reagent:"NaNH₂ in liquid NH₃",
+    regio:"Triple bond migrates to terminal position",
+    stereo:"N/A",
+    mech:"Repeated deprotonation/reprotonation (proton transfers) shift the triple bond along the chain until the thermodynamically disfavoured but kinetically trapped terminal alkyne accumulates (terminal anion is trapped by NH₄⁺)",
+    notes:"Useful for converting internal alkynes to terminal alkynes for further functionalization. The terminal alkynyl anion is the thermodynamic sink under these conditions."
+  },
+ 
   // ─── HALIDES & SN ───
   {
     num:14, cat:"halide",
